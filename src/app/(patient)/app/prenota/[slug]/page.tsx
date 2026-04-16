@@ -45,7 +45,11 @@ export default async function TherapistDetailPage({
   ]);
   if (!t) notFound();
 
-  const calLink = t.calComUsername ? `${t.calComUsername}/50min` : null;
+  // Usiamo solo lo username: Cal.com mostra la pagina profilo del sessuologo
+  // con tutti gli event types disponibili (il paziente sceglie quello giusto).
+  // Se in futuro vogliamo un event type specifico, aggiungiamo un campo
+  // `cal_event_slug` sulla tabella therapists.
+  const calLink = t.calComUsername || null;
 
   return (
     <div className="flex flex-col gap-8">
