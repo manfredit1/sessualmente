@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { CalendarDays, Clock, Video } from "lucide-react";
+import { CalendarDays, Clock } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
+import { MeetLinkEditor } from "@/components/pro/meet-link-editor";
 import {
   Card,
   CardContent,
@@ -169,17 +170,10 @@ function BookingRow({
         <div className="flex items-center gap-2">
           {variant === "upcoming" ? (
             <>
-              {booking.meetUrl && (
-                <a
-                  href={booking.meetUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={buttonVariants({ size: "sm" })}
-                >
-                  <Video className="mr-1 h-3.5 w-3.5" />
-                  Meet
-                </a>
-              )}
+              <MeetLinkEditor
+                bookingId={booking.id}
+                initialUrl={booking.meetUrl}
+              />
               {patient && (
                 <Link
                   href={`/pro/pazienti/${patient.id}`}
