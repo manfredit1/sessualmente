@@ -1,36 +1,83 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Sessualmente
 
-## Getting Started
+Piattaforma di sessuologia online — MVP per validare la domanda pazienti in 8-12 settimane.
 
-First, run the development server:
+> Riferimenti ispirazione: Unobravo, Serenis. Qui il focus è verticale sulla sessuologia.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Stack
+
+- **Next.js 16** (App Router) + TypeScript + Turbopack
+- **Tailwind CSS v4** + **shadcn/ui** (neutral) + Base UI
+- **Supabase** (EU Frankfurt) — Postgres, Auth, Storage, RLS
+- **Stripe** — pay-per-session
+- **Resend** — email transazionali
+- **Cal.com** + **Google Meet** — booking + video
+- **Vercel** (EU Frankfurt) — hosting
+- **PostHog EU** + **Plausible** — analytics
+- **Sentry** — error tracking
+
+Piano completo in `/Users/manfreditocci/.claude/plans/squishy-knitting-hopper.md`.
+
+## Struttura route
+
+```
+src/app/
+  (marketing)/          # Sito vetrina pubblico (SSG/ISR)
+    page.tsx            # Home
+    come-funziona/      # TODO Sprint 1
+    prezzi/             # TODO Sprint 1
+    specialisti/        # TODO Sprint 2
+    lavora-con-noi/     # Recruitment professionisti
+    privacy, termini, cookie/  # Legali (placeholder)
+  (auth)/
+    accedi/             # Magic link login
+    callback/           # Supabase OAuth callback
+  (patient)/app/        # Area paziente autenticata (sidebar)
+    dashboard/
+    questionario/       # Intake 10 domande (Sprint 1)
+    prenota/            # Cal.com + Stripe (Sprint 2)
+    sedute, fatture, profilo/
+  (pro)/pro/            # Area sessuologo autenticata (sidebar)
+    dashboard/
+    agenda, pazienti, incassi, profilo/
+  api/
+    stripe/webhook/     # Conferma pagamento
+    cal/webhook/        # Booking → meet_url
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Setup locale
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. **Node 22+** richiesto.
+2. Copia `.env.example` in `.env.local` e compila i valori (Supabase, Stripe, Resend, Cal.com).
+3. Installa le dipendenze:
+   ```bash
+   npm install
+   ```
+4. Avvia il dev server:
+   ```bash
+   npm run dev
+   ```
+   Apri [http://localhost:3000](http://localhost:3000).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Comandi
 
-## Learn More
+| Comando | Descrizione |
+|---|---|
+| `npm run dev` | Dev server (Turbopack, hot reload) |
+| `npm run build` | Build di produzione |
+| `npm start` | Avvia il build di produzione |
+| `npm run lint` | ESLint |
 
-To learn more about Next.js, take a look at the following resources:
+## Convenzioni
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Route groups** `(marketing)` `(auth)` `(patient)` `(pro)` per layout diversi nello stesso progetto.
+- Supabase client: `@/lib/supabase/server` (Server Components + Server Actions), `@/lib/supabase/client` (Client Components), middleware refresh in `src/middleware.ts`.
+- Helper auth: `@/lib/auth` → `requireUser()` / `getUser()`. Estendere con `requireRole()` in Sprint 1.
+- Bottoni-link: usare `buttonVariants()` + `<Link>` (shadcn v4 ha rimosso `asChild`).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Compliance (WIP)
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Hosting EU su tutti i subprocessor.
+- RLS Supabase obbligatorio su tabelle con dati personali.
+- Nessun dato clinico in chiaro nelle email.
+- DPIA + legal review prima del go-live.
