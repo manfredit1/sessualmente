@@ -2,7 +2,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   ArrowLeft,
-  CalendarDays,
   Clock,
   GraduationCap,
   Languages,
@@ -10,7 +9,6 @@ import {
   ShieldCheck,
   Video,
 } from "lucide-react";
-import { buttonVariants } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -19,7 +17,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { requireUser, displayName } from "@/lib/auth";
 import { getTherapistBySlug, formatCurrency } from "@/lib/queries";
+import { CalEmbed } from "@/components/app/cal-embed";
 
 export async function generateMetadata({
   params,
@@ -33,22 +33,19 @@ export async function generateMetadata({
   };
 }
 
-// TODO: sostituire slot mock con l'embed Cal.com reale.
-const MOCK_SLOTS = [
-  { day: "Lun 20 apr", slots: ["18:00", "19:00"] },
-  { day: "Mar 21 apr", slots: ["18:30", "20:00"] },
-  { day: "Gio 23 apr", slots: ["18:00", "19:00", "20:00"] },
-  { day: "Sab 25 apr", slots: ["10:00", "11:00"] },
-];
-
 export default async function TherapistDetailPage({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const t = await getTherapistBySlug(slug);
+  const [t, user] = await Promise.all([
+    getTherapistBySlug(slug),
+    requireUser("patient"),
+  ]);
   if (!t) notFound();
+
+  const calLink = t.calComUsername ? `${t.calComUsername}/50min` : null;
 
   return (
     <div className="flex flex-col gap-8">
@@ -60,16 +57,15 @@ export default async function TherapistDetailPage({
         Torna alla lista
       </Link>
 
-      <div className="grid gap-8 lg:grid-cols-[1.3fr_1fr]">
+      <div className="grid gap-8 lg:grid-cols-[1fr_1.4fr]">
+        {/* Left: bio */}
         <div className="flex flex-col gap-6">
           <div className="flex items-start gap-4">
             <div className="flex h-16 w-16 flex-none items-center justify-center rounded-full bg-primary/10 text-lg font-semibold text-primary">
               {t.initials}
             </div>
             <div>
-              <h1 className="text-3xl font-semibold tracking-tight">
-                {t.name}
-              </h1>
+              <h1 className="text-2xl font-semibold tracking-tight">{t.name}</h1>
               <p className="text-muted-foreground">{t.role}</p>
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {t.tags.map((tag) => (
@@ -81,12 +77,12 @@ export default async function TherapistDetailPage({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
-            <InfoTile icon={GraduationCap} label="Approccio" value={t.approach} />
+          <div className="space-y-2 rounded-xl border border-border/60 p-4 text-sm">
+            <InfoLine icon={GraduationCap} label="Approccio" value={t.approach} />
             {t.experience && (
-              <InfoTile icon={Clock} label="Esperienza" value={t.experience} />
+              <InfoLine icon={Clock} label="Esperienza" value={t.experience} />
             )}
-            <InfoTile icon={Languages} label="Lingue" value={t.languages.join(", ")} />
+            <InfoLine icon={Languages} label="Lingue" value={t.languages.join(", ")} />
           </div>
 
           <div>
@@ -95,80 +91,66 @@ export default async function TherapistDetailPage({
               {t.bio}
             </p>
           </div>
+
+          <div className="flex flex-col gap-2 rounded-xl bg-muted/30 p-4 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1.5">
+              <Video className="h-3.5 w-3.5" />
+              Su Google Meet, link via email
+            </span>
+            <span className="flex items-center gap-1.5">
+              <ShieldCheck className="h-3.5 w-3.5" />
+              Pagamento Stripe, cancellazione gratuita 24h prima
+            </span>
+            <span className="flex items-center gap-1.5">
+              <Lock className="h-3.5 w-3.5" />
+              Dati cifrati, server EU
+            </span>
+            <span className="mt-1 font-medium text-foreground">
+              Prima seduta {formatCurrency(t.pricePerSession)} · 50 min
+            </span>
+          </div>
         </div>
 
-        <div className="space-y-4">
-          <Card className="sticky top-8 border-border/60 shadow-sm">
-            <CardHeader>
-              <CardTitle>Scegli lo slot</CardTitle>
-              <CardDescription>
-                Prima seduta da 50 minuti.{" "}
-                <span className="font-semibold text-foreground">
-                  {formatCurrency(t.pricePerSession)}
-                </span>{" "}
-                · paghi dopo aver scelto l&apos;orario.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-4">
-              <div className="rounded-lg border border-dashed border-border/60 bg-muted/40 p-3 text-xs text-muted-foreground">
-                <p className="flex items-center gap-1.5 font-medium text-foreground">
-                  <CalendarDays className="h-3.5 w-3.5" />
-                  Slot mock
+        {/* Right: Cal.com embed */}
+        <Card className="overflow-hidden border-border/60">
+          <CardHeader className="border-b border-border/60">
+            <CardTitle>Scegli lo slot</CardTitle>
+            <CardDescription>
+              Slot live aggiornati in tempo reale dal calendario del sessuologo.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-0">
+            {calLink ? (
+              <div className="h-[640px] w-full">
+                <CalEmbed
+                  calLink={calLink}
+                  patientEmail={user.email}
+                  patientName={displayName(user)}
+                  therapistSlug={t.slug}
+                />
+              </div>
+            ) : (
+              <div className="flex flex-col items-center gap-3 p-10 text-center">
+                <p className="text-sm text-muted-foreground">
+                  Il sessuologo non ha ancora collegato la sua agenda Cal.com.
+                  Riprova più tardi o scegli un altro specialista.
                 </p>
-                <p className="mt-1">
-                  In produzione qui appare l&apos;embed Cal.com del sessuologo.
-                </p>
+                <Link
+                  href="/app/prenota"
+                  className="text-sm font-medium text-primary underline-offset-4 hover:underline"
+                >
+                  Vedi altri specialisti
+                </Link>
               </div>
-
-              <div className="flex flex-col gap-3">
-                {MOCK_SLOTS.map((day) => (
-                  <div key={day.day}>
-                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                      {day.day}
-                    </p>
-                    <div className="mt-2 flex flex-wrap gap-1.5">
-                      {day.slots.map((slot) => (
-                        <Link
-                          key={slot}
-                          href={`/app/prenota/conferma?therapist=${t.slug}&slot=${encodeURIComponent(
-                            day.day + " " + slot
-                          )}`}
-                          className={buttonVariants({
-                            variant: "outline",
-                            size: "sm",
-                          })}
-                        >
-                          {slot}
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-2 flex flex-col gap-1 border-t border-border/60 pt-3 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1.5">
-                  <Video className="h-3.5 w-3.5" />
-                  Su Google Meet, link via email
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <ShieldCheck className="h-3.5 w-3.5" />
-                  Pagamento via Stripe, cancellazione gratuita 24h prima
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <Lock className="h-3.5 w-3.5" />
-                  Riservatezza: dati cifrati, server EU
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
 }
 
-function InfoTile({
+function InfoLine({
   icon: Icon,
   label,
   value,
@@ -178,11 +160,13 @@ function InfoTile({
   value: string;
 }) {
   return (
-    <div className="flex items-center gap-2 rounded-lg border border-border/60 p-3">
-      <Icon className="h-4 w-4 text-primary" />
+    <div className="flex items-start gap-2">
+      <Icon className="mt-0.5 h-4 w-4 flex-none text-primary" />
       <div>
-        <p className="text-xs text-muted-foreground">{label}</p>
-        <p className="font-medium">{value}</p>
+        <span className="text-xs uppercase tracking-wider text-muted-foreground">
+          {label}
+        </span>
+        <p className="text-sm">{value}</p>
       </div>
     </div>
   );

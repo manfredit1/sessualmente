@@ -3,6 +3,7 @@ import {
   ArrowRight,
   CalendarDays,
   Clock,
+  ClipboardList,
   Video,
   Sparkles,
 } from "lucide-react";
@@ -16,6 +17,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { requireUser, displayName } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
 import {
   getMyBookings,
   getMyNextBooking,
@@ -30,11 +32,18 @@ export const metadata = { title: "La tua area" };
 
 export default async function PatientDashboardPage() {
   const user = await requireUser("patient");
-  const [next, allBookings, therapists] = await Promise.all([
+  const supabase = await createClient();
+  const [next, allBookings, therapists, intakeCount] = await Promise.all([
     getMyNextBooking(user.id),
     getMyBookings(user.id),
     listActiveTherapists(),
+    supabase
+      .from("intake_responses")
+      .select("id", { count: "exact", head: true })
+      .eq("profile_id", user.id)
+      .then((r) => r.count ?? 0),
   ]);
+  const hasIntake = intakeCount > 0;
   const nextTherapist = next ? await getTherapistById(next.therapistId) : null;
   const past = allBookings.filter((b) => b.status === "completed");
   const pastTherapists = await Promise.all(
@@ -56,6 +65,33 @@ export default async function PatientDashboardPage() {
           Ecco dove sei oggi. Ogni cosa è nella tua area riservata.
         </p>
       </div>
+
+      {!hasIntake && (
+        <Card className="border-primary/30 bg-primary/5">
+          <CardHeader className="flex flex-row items-start gap-4 space-y-0">
+            <span className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-primary/15 text-primary">
+              <ClipboardList className="h-5 w-5" />
+            </span>
+            <div className="flex-1">
+              <CardTitle className="text-base">
+                Completa il questionario
+              </CardTitle>
+              <CardDescription>
+                3 minuti per aiutarci a proporti i sessuologi adatti a te. È
+                anche ciò che il sessuologo leggerà prima della vostra prima
+                seduta.
+              </CardDescription>
+            </div>
+            <Link
+              href="/questionario"
+              className={buttonVariants({ size: "sm" })}
+            >
+              Inizia
+              <ArrowRight className="ml-1 h-3.5 w-3.5" />
+            </Link>
+          </CardHeader>
+        </Card>
+      )}
 
       {next && nextTherapist ? (
         <Card className="relative overflow-hidden border-primary/20 bg-primary text-primary-foreground">

@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { PatientSidebar } from "@/components/app/patient-sidebar";
 
@@ -7,6 +8,11 @@ export default async function PatientAppLayout({
   children: React.ReactNode;
 }) {
   const user = await requireUser("patient");
+  // Costringe l'onboarding se il profilo non è completo.
+  if (!user.firstName || !user.lastName) {
+    redirect("/benvenuto");
+  }
+
   return (
     <div className="flex min-h-screen">
       <PatientSidebar user={user} />
