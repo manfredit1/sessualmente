@@ -133,7 +133,7 @@ export default async function PatientDashboardPage() {
               </span>
             </div>
             <div className="mt-6 flex flex-wrap gap-2">
-              {next.meetUrl && (
+              {next.meetUrl ? (
                 <a
                   href={next.meetUrl}
                   target="_blank"
@@ -148,6 +148,11 @@ export default async function PatientDashboardPage() {
                   {imminent ? "Entra nella seduta" : "Apri link Meet"}
                   <ArrowRight className="ml-1 h-4 w-4" />
                 </a>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 rounded-md border border-primary-foreground/20 px-3 py-1.5 text-xs text-primary-foreground/70">
+                  <Video className="h-3.5 w-3.5" />
+                  Link Meet in arrivo
+                </span>
               )}
               <Link
                 href={`/app/sedute`}

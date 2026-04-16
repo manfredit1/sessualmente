@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CalendarDays, Clock, MoreHorizontal, Video } from "lucide-react";
+import { CalendarDays, Clock, Video } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import {
   Card,
@@ -134,7 +134,7 @@ function BookingRow({
         <div className="flex items-center gap-2">
           {variant === "upcoming" ? (
             <>
-              {booking.meetUrl && (
+              {booking.meetUrl ? (
                 <a
                   href={booking.meetUrl}
                   target="_blank"
@@ -142,16 +142,14 @@ function BookingRow({
                   className={buttonVariants({ size: "sm" })}
                 >
                   <Video className="mr-1 h-3.5 w-3.5" />
-                  Link Meet
+                  Entra in Meet
                 </a>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 rounded-md border border-dashed px-2.5 py-1 text-xs text-muted-foreground">
+                  <Video className="h-3 w-3" />
+                  Link Meet in arrivo
+                </span>
               )}
-              <button
-                type="button"
-                className={buttonVariants({ size: "sm", variant: "outline" })}
-                title="Altre azioni"
-              >
-                <MoreHorizontal className="h-4 w-4" />
-              </button>
             </>
           ) : (
             <>
