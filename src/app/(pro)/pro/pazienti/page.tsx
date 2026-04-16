@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Filter } from "lucide-react";
-import { buttonVariants } from "@/components/ui/button";
+import { ArrowRight } from "lucide-react";
 import {
   Card,
   CardHeader,
@@ -55,10 +54,6 @@ export default async function PazientiPage() {
             Tutti i tuoi pazienti. Clicca per vedere intake e storico sedute.
           </p>
         </div>
-        <button className={buttonVariants({ variant: "outline", size: "sm" })} type="button">
-          <Filter className="mr-1 h-3.5 w-3.5" />
-          Filtra
-        </button>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-3">

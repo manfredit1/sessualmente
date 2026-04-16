@@ -5,10 +5,7 @@ import {
   CalendarDays,
   ClipboardList,
   Clock,
-  Mail,
-  MessageSquare,
 } from "lucide-react";
-import { buttonVariants } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -116,16 +113,6 @@ export default async function PatientDetailPage({
                 : ""}
             </p>
           </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <button className={buttonVariants({ variant: "outline" })} type="button" disabled>
-            <MessageSquare className="mr-1 h-4 w-4" />
-            Scrivi al paziente
-          </button>
-          <button className={buttonVariants()} type="button" disabled>
-            <CalendarDays className="mr-1 h-4 w-4" />
-            Prenota seduta
-          </button>
         </div>
       </div>
 
@@ -276,20 +263,6 @@ export default async function PatientDetailPage({
         </Card>
       </div>
 
-      <Card className="border-dashed bg-muted/30">
-        <CardHeader className="flex flex-row items-start gap-3 space-y-0">
-          <span className="flex h-9 w-9 flex-none items-center justify-center rounded-full bg-primary/10 text-primary">
-            <Mail className="h-4 w-4" />
-          </span>
-          <div>
-            <CardTitle className="text-base">Comunicazioni via email</CardTitle>
-            <CardDescription>
-              In MVP scrivi al paziente dalla tua casella. In produzione useremo
-              messaggi in-app.
-            </CardDescription>
-          </div>
-        </CardHeader>
-      </Card>
     </div>
   );
 }
