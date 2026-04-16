@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { ArrowRight, Clock, GraduationCap } from "lucide-react";
-import { buttonVariants } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -41,7 +40,7 @@ export default async function PrenotaListPage() {
         <p className="mt-2 text-muted-foreground">
           {current
             ? "Continua il percorso con chi già conosci, o esplora un altro profilo più in basso."
-            : "Abbiamo selezionato questi specialisti in base alle tue risposte. Leggi le bio, scegli chi ti ispira fiducia."}
+            : "Clicca su un profilo per leggere la bio completa, stile di lavoro, formazione e disponibilità."}
         </p>
       </div>
 
@@ -84,79 +83,91 @@ function TherapistCard({
   showMatchBadge?: boolean;
 }) {
   return (
-    <Card
-      className={
+    <Link
+      href={`/app/prenota/${t.slug}`}
+      className={`group block rounded-xl transition ${
         featured
-          ? "flex flex-col border-primary/30 shadow-md shadow-primary/5"
-          : "flex flex-col border-border/60"
-      }
+          ? "border border-primary/30 bg-card shadow-md shadow-primary/5 hover:border-primary hover:shadow-lg"
+          : "border border-border/60 bg-card hover:border-primary/40 hover:shadow-sm"
+      }`}
     >
-      <CardHeader>
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div
-              className={`flex flex-none items-center justify-center rounded-full bg-primary/10 font-semibold text-primary ${
-                featured ? "h-14 w-14 text-base" : "h-12 w-12 text-sm"
+      <Card className="border-none bg-transparent shadow-none">
+        <CardHeader>
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div
+                className={`flex flex-none items-center justify-center rounded-full bg-primary/10 font-semibold text-primary ${
+                  featured ? "h-14 w-14 text-base" : "h-12 w-12 text-sm"
+                }`}
+              >
+                {t.initials}
+              </div>
+              <div>
+                <CardTitle className={featured ? "text-xl" : "text-lg"}>
+                  {t.name}
+                </CardTitle>
+                <CardDescription>
+                  {t.role}
+                  {t.region ? ` · ${t.region}` : ""}
+                </CardDescription>
+              </div>
+            </div>
+            {featured && <Badge variant="default">Il tuo</Badge>}
+            {showMatchBadge && (
+              <Badge variant="default" className="shrink-0">
+                Match alto
+              </Badge>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4 text-sm">
+          <p
+            className={
+              featured ? "text-muted-foreground" : "line-clamp-3 text-muted-foreground"
+            }
+          >
+            {t.bio}
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {t.tags.map((tag) => (
+              <Badge key={tag} variant="secondary">
+                {tag}
+              </Badge>
+            ))}
+          </div>
+          <div className="flex flex-col gap-1.5 text-xs text-muted-foreground">
+            <span className="flex items-center gap-2">
+              <GraduationCap className="h-3.5 w-3.5" />
+              {t.approach}
+            </span>
+            {t.experience && (
+              <span className="flex items-center gap-2">
+                <Clock className="h-3.5 w-3.5" />
+                {t.experience}
+              </span>
+            )}
+          </div>
+          <div className="mt-2 flex items-center justify-between border-t border-border/60 pt-4">
+            <span className="text-sm">
+              <span className="text-muted-foreground">
+                {featured ? "Prossima seduta · " : "Prima seduta · "}
+              </span>
+              <span className="font-semibold">
+                {formatCurrency(t.pricePerSession)}
+              </span>
+            </span>
+            <span
+              className={`inline-flex items-center gap-1 text-sm font-medium ${
+                featured ? "text-primary" : "text-primary"
               }`}
             >
-              {t.initials}
-            </div>
-            <div>
-              <CardTitle className={featured ? "text-xl" : "text-lg"}>
-                {t.name}
-              </CardTitle>
-              <CardDescription>{t.role}</CardDescription>
-            </div>
+              {featured ? "Prenota nuova seduta" : "Scopri profilo e prenota"}
+              <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+            </span>
           </div>
-          {featured && <Badge variant="default">Il tuo</Badge>}
-          {showMatchBadge && (
-            <Badge variant="default" className="shrink-0">
-              Match alto
-            </Badge>
-          )}
-        </div>
-      </CardHeader>
-      <CardContent className="flex flex-1 flex-col gap-4 text-sm">
-        <p className={featured ? "text-muted-foreground" : "line-clamp-3 text-muted-foreground"}>
-          {t.bio}
-        </p>
-        <div className="flex flex-wrap gap-1.5">
-          {t.tags.map((tag) => (
-            <Badge key={tag} variant="secondary">
-              {tag}
-            </Badge>
-          ))}
-        </div>
-        <div className="flex flex-col gap-1.5 text-xs text-muted-foreground">
-          <span className="flex items-center gap-2">
-            <GraduationCap className="h-3.5 w-3.5" />
-            {t.approach}
-          </span>
-          {t.experience && (
-            <span className="flex items-center gap-2">
-              <Clock className="h-3.5 w-3.5" />
-              {t.experience}
-            </span>
-          )}
-        </div>
-        <div className="mt-auto flex items-center justify-between border-t border-border/60 pt-4">
-          <span className="text-sm">
-            <span className="text-muted-foreground">
-              {featured ? "Prossima seduta · " : "Prima seduta · "}
-            </span>
-            <span className="font-semibold">
-              {formatCurrency(t.pricePerSession)}
-            </span>
-          </span>
-          <Link
-            href={`/app/prenota/${t.slug}`}
-            className={buttonVariants({ variant: featured ? "default" : "outline" })}
-          >
-            {featured ? "Prenota nuova seduta" : "Vedi disponibilità"}
-            <ArrowRight className="ml-1 h-3.5 w-3.5" />
-          </Link>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </Link>
   );
 }
+
