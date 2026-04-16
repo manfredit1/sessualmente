@@ -158,6 +158,26 @@ export async function getMyNextBooking(userId: string): Promise<Booking | null> 
   return data ? mapBooking(data as Record<string, unknown>) : null;
 }
 
+/**
+ * Trova il "sessuologo corrente" del paziente: quello con cui ha l'ultima
+ * prenotazione (scheduled o completed). Ritorna null se non ha mai prenotato.
+ */
+export async function getMyCurrentTherapist(
+  userId: string
+): Promise<Therapist | null> {
+  const supabase = await createClient();
+  const { data: lastBooking } = await supabase
+    .from("bookings")
+    .select("therapist_id")
+    .eq("patient_id", userId)
+    .in("status", ["scheduled", "completed"])
+    .order("starts_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (!lastBooking?.therapist_id) return null;
+  return getTherapistById(lastBooking.therapist_id as string);
+}
+
 export async function getMyInvoices(userId: string): Promise<Invoice[]> {
   const supabase = await createClient();
   const { data, error } = await supabase

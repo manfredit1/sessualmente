@@ -4,6 +4,7 @@ import {
   CalendarDays,
   Clock,
   ClipboardList,
+  GraduationCap,
   Video,
   Sparkles,
 } from "lucide-react";
@@ -20,6 +21,7 @@ import { requireUser, displayName } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import {
   getMyBookings,
+  getMyCurrentTherapist,
   getMyNextBooking,
   getTherapistById,
   listActiveTherapists,
@@ -33,25 +35,28 @@ export const metadata = { title: "La tua area" };
 export default async function PatientDashboardPage() {
   const user = await requireUser("patient");
   const supabase = await createClient();
-  const [next, allBookings, therapists, intakeCount] = await Promise.all([
-    getMyNextBooking(user.id),
-    getMyBookings(user.id),
-    listActiveTherapists(),
-    supabase
-      .from("intake_responses")
-      .select("id", { count: "exact", head: true })
-      .eq("profile_id", user.id)
-      .then((r) => r.count ?? 0),
-  ]);
+  const [next, allBookings, therapists, intakeCount, currentTherapist] =
+    await Promise.all([
+      getMyNextBooking(user.id),
+      getMyBookings(user.id),
+      listActiveTherapists(),
+      supabase
+        .from("intake_responses")
+        .select("id", { count: "exact", head: true })
+        .eq("profile_id", user.id)
+        .then((r) => r.count ?? 0),
+      getMyCurrentTherapist(user.id),
+    ]);
   const hasIntake = intakeCount > 0;
   const nextTherapist = next ? await getTherapistById(next.therapistId) : null;
   const past = allBookings.filter((b) => b.status === "completed");
   const pastTherapists = await Promise.all(
     past.slice(0, 3).map((b) => getTherapistById(b.therapistId))
   );
-  const suggested = therapists
-    .filter((t) => !next || t.id !== next.therapistId)
-    .slice(0, 2);
+  // Suggeriti solo se l'utente non ha ancora un sessuologo.
+  const suggested = currentTherapist
+    ? []
+    : therapists.slice(0, 2);
   const imminent = next && minutesUntil(next.startsAt) <= 30;
   const firstName = user.firstName ?? displayName(user).split(" ")[0];
 
@@ -173,6 +178,64 @@ export default async function PatientDashboardPage() {
         </Card>
       )}
 
+      {currentTherapist ? (
+        <div>
+          <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-primary">
+            Il tuo sessuologo
+          </p>
+          <Card className="border-border/60">
+            <CardHeader>
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-4">
+                  <div className="flex h-14 w-14 flex-none items-center justify-center rounded-full bg-primary/10 text-base font-semibold text-primary">
+                    {currentTherapist.initials}
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg">
+                      {currentTherapist.name}
+                    </CardTitle>
+                    <CardDescription>
+                      {currentTherapist.role}
+                      {currentTherapist.experience
+                        ? ` · ${currentTherapist.experience}`
+                        : ""}
+                    </CardDescription>
+                  </div>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4 text-sm">
+              <p className="text-muted-foreground">{currentTherapist.bio}</p>
+              <div className="flex flex-wrap gap-1.5">
+                {currentTherapist.tags.map((tag) => (
+                  <Badge key={tag} variant="secondary">
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <GraduationCap className="h-3.5 w-3.5" />
+                {currentTherapist.approach}
+              </div>
+              <div className="flex flex-wrap gap-2 pt-2">
+                <Link
+                  href={`/app/prenota/${currentTherapist.slug}`}
+                  className={buttonVariants({ size: "sm" })}
+                >
+                  Prenota un'altra seduta
+                  <ArrowRight className="ml-1 h-3.5 w-3.5" />
+                </Link>
+                <Link
+                  href="/app/prenota"
+                  className={buttonVariants({ size: "sm", variant: "outline" })}
+                >
+                  Vedi altri sessuologi
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      ) : (
       <div>
         <div className="mb-4 flex items-end justify-between">
           <div>
@@ -230,6 +293,7 @@ export default async function PatientDashboardPage() {
           ))}
         </div>
       </div>
+      )}
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
@@ -273,26 +337,30 @@ export default async function PatientDashboardPage() {
         )}
       </Card>
 
-      <Card className="border-dashed bg-muted/30">
-        <CardHeader className="flex flex-row items-start gap-4 space-y-0">
-          <span className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-primary/10 text-primary">
-            <Sparkles className="h-5 w-5" />
-          </span>
-          <div className="flex-1">
-            <CardTitle className="text-base">Vuoi cambiare sessuologo?</CardTitle>
-            <CardDescription>
-              Nessun problema, puoi farlo in qualsiasi momento. Senza spiegare
-              perché.
-            </CardDescription>
-          </div>
-          <Link
-            href="/app/prenota"
-            className={buttonVariants({ variant: "outline", size: "sm" })}
-          >
-            Esplora altri specialisti
-          </Link>
-        </CardHeader>
-      </Card>
+      {currentTherapist && (
+        <Card className="border-dashed bg-muted/30">
+          <CardHeader className="flex flex-row items-start gap-4 space-y-0">
+            <span className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-primary/10 text-primary">
+              <Sparkles className="h-5 w-5" />
+            </span>
+            <div className="flex-1">
+              <CardTitle className="text-base">
+                Vuoi cambiare sessuologo?
+              </CardTitle>
+              <CardDescription>
+                Nessun problema, puoi farlo in qualsiasi momento. Senza spiegare
+                perché.
+              </CardDescription>
+            </div>
+            <Link
+              href="/app/prenota"
+              className={buttonVariants({ variant: "outline", size: "sm" })}
+            >
+              Esplora altri specialisti
+            </Link>
+          </CardHeader>
+        </Card>
+      )}
     </div>
   );
 }
