@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/manfreditocci/.claude/plans/**)",
+      "Bash(npm --version)",
+      "Bash(git --version)",
+      "Bash(pnpm --version)"
+    ],
+    "additionalDirectories": [
+      "/Users/manfreditocci/sessualmente/.claude"
+    ]
+  }
+}
