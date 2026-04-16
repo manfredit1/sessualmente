@@ -5,6 +5,18 @@ import { createClient } from "@/lib/supabase/server";
 // Ritornano tipi "piatti" pensati per l'UI.
 // =============================================================================
 
+export type EducationItem = {
+  type: "albo" | "laurea" | "specializzazione" | "esperienza" | string;
+  description: string;
+};
+
+export type StyleProfile = {
+  formale_informale?: number; // 0 = formale, 100 = informale
+  riflessivo_razionale?: number;
+  spazio_scaletta?: number;
+  lascia_guida?: number;
+};
+
 export type Therapist = {
   id: string;
   slug: string;
@@ -19,6 +31,14 @@ export type Therapist = {
   pricePerSession: number; // in cents
   calComUsername: string | null;
   status: "pending" | "active" | "suspended";
+  // Rich profile
+  age: number | null;
+  region: string | null;
+  orientation: string | null;
+  selfDescription: string | null;
+  styleProfile: StyleProfile | null;
+  education: EducationItem[] | null;
+  courses: string[] | null;
 };
 
 export type Booking = {
@@ -59,6 +79,13 @@ function mapTherapist(row: Record<string, unknown>): Therapist {
     pricePerSession: (row.price_per_session as number) / 100,
     calComUsername: (row.cal_com_username as string | null) ?? null,
     status: row.status as Therapist["status"],
+    age: (row.age as number | null) ?? null,
+    region: (row.region as string | null) ?? null,
+    orientation: (row.orientation as string | null) ?? null,
+    selfDescription: (row.self_description as string | null) ?? null,
+    styleProfile: (row.style_profile as StyleProfile | null) ?? null,
+    education: (row.education as EducationItem[] | null) ?? null,
+    courses: (row.courses as string[] | null) ?? null,
   };
 }
 
@@ -94,7 +121,7 @@ export async function listActiveTherapists(): Promise<Therapist[]> {
   const { data, error } = await supabase
     .from("therapists")
     .select(
-      "id, slug, name, initials, role, approach, bio, tags, languages, experience, price_per_session, cal_com_username, status"
+      "id, slug, name, initials, role, approach, bio, tags, languages, experience, price_per_session, cal_com_username, status, age, region, orientation, self_description, style_profile, education, courses"
     )
     .eq("status", "active")
     .order("name");
@@ -107,7 +134,7 @@ export async function getTherapistBySlug(slug: string): Promise<Therapist | null
   const { data, error } = await supabase
     .from("therapists")
     .select(
-      "id, slug, name, initials, role, approach, bio, tags, languages, experience, price_per_session, cal_com_username, status"
+      "id, slug, name, initials, role, approach, bio, tags, languages, experience, price_per_session, cal_com_username, status, age, region, orientation, self_description, style_profile, education, courses"
     )
     .eq("slug", slug)
     .maybeSingle();
@@ -120,7 +147,7 @@ export async function getTherapistById(id: string): Promise<Therapist | null> {
   const { data, error } = await supabase
     .from("therapists")
     .select(
-      "id, slug, name, initials, role, approach, bio, tags, languages, experience, price_per_session, cal_com_username, status"
+      "id, slug, name, initials, role, approach, bio, tags, languages, experience, price_per_session, cal_com_username, status, age, region, orientation, self_description, style_profile, education, courses"
     )
     .eq("id", id)
     .maybeSingle();
@@ -198,7 +225,7 @@ export async function getMyTherapistRecord(
   const { data, error } = await supabase
     .from("therapists")
     .select(
-      "id, slug, name, initials, role, approach, bio, tags, languages, experience, price_per_session, cal_com_username, status, iban, codice_fiscale, partita_iva"
+      "id, slug, name, initials, role, approach, bio, tags, languages, experience, price_per_session, cal_com_username, status, age, region, orientation, self_description, style_profile, education, courses, iban, codice_fiscale, partita_iva"
     )
     .eq("auth_user_id", userId)
     .maybeSingle();
