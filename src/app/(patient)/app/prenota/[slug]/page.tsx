@@ -4,7 +4,6 @@ import {
   ArrowLeft,
   Clock,
   GraduationCap,
-  Languages,
   Lock,
   ShieldCheck,
   Video,
@@ -86,7 +85,6 @@ export default async function TherapistDetailPage({
             {t.experience && (
               <InfoLine icon={Clock} label="Esperienza" value={t.experience} />
             )}
-            <InfoLine icon={Languages} label="Lingue" value={t.languages.join(", ")} />
           </div>
 
           <div>

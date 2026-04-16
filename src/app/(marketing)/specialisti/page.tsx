@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Clock, GraduationCap, Languages } from "lucide-react";
+import { Clock, GraduationCap } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import {
   Card,
@@ -106,10 +106,6 @@ export default function SpecialistiPage() {
                   <span className="flex items-center gap-2">
                     <Clock className="h-3.5 w-3.5" />
                     {t.experience}
-                  </span>
-                  <span className="flex items-center gap-2">
-                    <Languages className="h-3.5 w-3.5" />
-                    {t.languages.join(", ")}
                   </span>
                 </div>
               </CardContent>

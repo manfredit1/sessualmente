@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect } from "react";
 import { toast } from "sonner";
-import { ExternalLink, Languages } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,7 +18,6 @@ export function ProProfileForm({
     role: string;
     approach: string;
     tags: string[];
-    languages: string[];
     calComUsername: string | null;
     iban: string | null;
     codiceFiscale: string | null;
@@ -64,13 +63,6 @@ export function ProProfileForm({
           <p className="mt-2 text-xs text-muted-foreground">
             I tag sono gestiti dall&apos;admin durante l&apos;onboarding.
           </p>
-        </div>
-        <div className="mt-4">
-          <Label>Lingue</Label>
-          <div className="mt-2 flex items-center gap-2 rounded-lg border px-3 py-2 text-sm">
-            <Languages className="h-4 w-4 text-muted-foreground" />
-            {initial.languages.join(", ")}
-          </div>
         </div>
       </FormSection>
 

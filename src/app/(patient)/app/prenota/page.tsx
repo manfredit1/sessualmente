@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Clock, GraduationCap, Languages } from "lucide-react";
+import { ArrowRight, Clock, GraduationCap } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import {
   Card,
@@ -72,10 +72,6 @@ export default async function PrenotaListPage() {
                     {t.experience}
                   </span>
                 )}
-                <span className="flex items-center gap-2">
-                  <Languages className="h-3.5 w-3.5" />
-                  {t.languages.join(", ")}
-                </span>
               </div>
               <div className="mt-auto flex items-center justify-between border-t border-border/60 pt-4">
                 <span className="text-sm">

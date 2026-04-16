@@ -34,7 +34,6 @@ export default async function ProfiloProPage() {
           role: therapist.role,
           approach: therapist.approach,
           tags: therapist.tags,
-          languages: therapist.languages,
           calComUsername: therapist.calComUsername,
           iban: therapist.iban,
           codiceFiscale: therapist.codiceFiscale,
