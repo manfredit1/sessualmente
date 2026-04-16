@@ -302,14 +302,20 @@ export async function getProPatient(
 
 // Formatters -----------------------------------------------------------------
 
+// Tutti i formatter usano fuso Italia. Il DB salva timestamp UTC, ma l'utente
+// vede sempre l'ora locale italiana. Hardcoded per MVP italiano-only.
+const IT_TZ = "Europe/Rome";
+
 const dateFmt = new Intl.DateTimeFormat("it-IT", {
   weekday: "long",
   day: "numeric",
   month: "long",
+  timeZone: IT_TZ,
 });
 const timeFmt = new Intl.DateTimeFormat("it-IT", {
   hour: "2-digit",
   minute: "2-digit",
+  timeZone: IT_TZ,
 });
 
 export function formatDate(iso: string): string {

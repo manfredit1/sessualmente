@@ -92,6 +92,7 @@ export default async function ProDashboardPage() {
               weekday: "long",
               day: "numeric",
               month: "long",
+              timeZone: "Europe/Rome",
             }).format(new Date())}
           </p>
         </div>
