@@ -39,6 +39,13 @@ export default async function ProfiloProPage() {
           codiceFiscale: therapist.codiceFiscale,
           partitaIva: therapist.partitaIva,
           email: user.email,
+          age: therapist.age,
+          region: therapist.region,
+          orientation: therapist.orientation,
+          selfDescription: therapist.selfDescription,
+          styleProfile: therapist.styleProfile,
+          education: therapist.education,
+          courses: therapist.courses,
         }}
       />
     </div>
