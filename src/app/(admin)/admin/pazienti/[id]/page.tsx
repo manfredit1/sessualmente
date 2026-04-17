@@ -10,6 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { IntakeView } from "../../_components/IntakeView";
 
 export default async function PazienteDetailPage({
   params,
@@ -95,7 +96,7 @@ export default async function PazienteDetailPage({
           </CardDescription>
         </CardHeader>
         {intake && (
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-4">
             <div className="flex flex-wrap gap-2">
               <Badge variant={intake.clinical_consent ? "secondary" : "outline"}>
                 Consenso clinico: {intake.clinical_consent ? "sì" : "no"}
@@ -104,9 +105,9 @@ export default async function PazienteDetailPage({
                 Consenso marketing: {intake.marketing_consent ? "sì" : "no"}
               </Badge>
             </div>
-            <pre className="overflow-x-auto rounded-md bg-muted p-4 text-xs">
-              {JSON.stringify(intake.responses, null, 2)}
-            </pre>
+            <IntakeView
+              responses={intake.responses as Record<string, unknown>}
+            />
           </CardContent>
         )}
       </Card>
