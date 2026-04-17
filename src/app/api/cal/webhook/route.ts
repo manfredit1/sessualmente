@@ -46,6 +46,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "invalid json" }, { status: 400 });
   }
 
+  // DEBUG TEMP: rimuovere dopo aver risolto il parsing del meet_url
+  console.log(
+    "[cal webhook] trigger=",
+    body.triggerEvent,
+    "payload=",
+    JSON.stringify(body.payload)
+  );
+
   const admin = createAdminClient();
   const p = body.payload;
 
