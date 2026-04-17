@@ -1,0 +1,34 @@
+import Link from "next/link";
+import { ShieldCheck } from "lucide-react";
+import { requireUser, displayName } from "@/lib/auth";
+
+export const metadata = { title: "Admin" };
+
+export default async function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const user = await requireUser("admin");
+
+  return (
+    <div className="flex min-h-screen flex-col bg-muted/30">
+      <header className="border-b border-border/60 bg-background">
+        <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
+          <Link href="/admin" className="flex items-center gap-2 text-sm font-semibold">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <ShieldCheck className="h-4 w-4" />
+            </span>
+            Admin · Sessualmente
+          </Link>
+          <div className="text-xs text-muted-foreground">
+            {displayName(user)} · {user.email}
+          </div>
+        </div>
+      </header>
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">
+        {children}
+      </main>
+    </div>
+  );
+}
