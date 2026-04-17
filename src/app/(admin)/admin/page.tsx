@@ -1,58 +1,81 @@
+import Link from "next/link";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { ApplicationRow } from "./_components/ApplicationRow";
 import { KpiCards } from "./_components/KpiCards";
 import {
   Card,
-  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { ArrowRight } from "lucide-react";
 
 export default async function AdminPage() {
   const supabase = createAdminClient();
 
-  const [{ data: applications }, { data: kpi }] = await Promise.all([
+  const [{ data: kpi }, { count: pendingCount }] = await Promise.all([
+    supabase.from("admin_kpi").select("*").single(),
     supabase
       .from("pro_applications")
-      .select(
-        "id, first_name, last_name, email, phone, qualification, albo, years_of_practice, approach, motivation, cv_url, status, created_at"
-      )
-      .in("status", ["new", "review"])
-      .order("created_at", { ascending: false }),
-    supabase.from("admin_kpi").select("*").single(),
+      .select("id", { count: "exact", head: true })
+      .in("status", ["new", "review"]),
   ]);
-
-  const rows = applications ?? [];
 
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <h1 className="text-3xl font-semibold tracking-tight">Pannello admin</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">Panoramica</h1>
         <p className="text-muted-foreground">
-          Gestione candidature sessuologi e metriche piattaforma.
+          Metriche piattaforma e accesso rapido alle sezioni di gestione.
         </p>
       </div>
 
-      <KpiCards kpi={kpi ?? null} pendingApplications={rows.length} />
+      <KpiCards kpi={kpi ?? null} pendingApplications={pendingCount ?? 0} />
 
-      <Card className="border-border/60">
-        <CardHeader>
-          <CardTitle className="text-base">Candidature in attesa</CardTitle>
-          <CardDescription>
-            {rows.length === 0
-              ? "Nessuna candidatura da valutare."
-              : `${rows.length} candidatura${rows.length === 1 ? "" : "e"} da valutare.`}
-          </CardDescription>
-        </CardHeader>
-        {rows.length > 0 && (
-          <CardContent className="flex flex-col gap-3">
-            {rows.map((app) => (
-              <ApplicationRow key={app.id} application={app} />
-            ))}
-          </CardContent>
-        )}
-      </Card>
+      <div className="grid gap-4 sm:grid-cols-3">
+        <QuickLink
+          href="/admin/candidature"
+          title="Candidature"
+          description={
+            pendingCount
+              ? `${pendingCount} in attesa di valutazione`
+              : "Nessuna candidatura pending"
+          }
+        />
+        <QuickLink
+          href="/admin/pazienti"
+          title="Pazienti"
+          description={`${kpi?.patients ?? 0} registrati`}
+        />
+        <QuickLink
+          href="/admin/terapisti"
+          title="Terapisti"
+          description={`${kpi?.active_therapists ?? 0} attivi`}
+        />
+      </div>
     </div>
+  );
+}
+
+function QuickLink({
+  href,
+  title,
+  description,
+}: {
+  href: string;
+  title: string;
+  description: string;
+}) {
+  return (
+    <Link href={href} className="group">
+      <Card className="h-full border-border/60 transition hover:border-primary/40">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base">{title}</CardTitle>
+            <ArrowRight className="h-4 w-4 text-muted-foreground transition group-hover:translate-x-0.5 group-hover:text-foreground" />
+          </div>
+          <CardDescription>{description}</CardDescription>
+        </CardHeader>
+      </Card>
+    </Link>
   );
 }

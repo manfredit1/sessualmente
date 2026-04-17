@@ -105,6 +105,7 @@ export async function approveApplication(
     return { error: `Update candidatura fallito: ${statusErr.message}` };
 
   revalidatePath("/admin");
+  revalidatePath("/admin/candidature");
   return { success: true };
 }
 
@@ -121,5 +122,41 @@ export async function rejectApplication(
 
   if (error) return { error: `Update fallito: ${error.message}` };
   revalidatePath("/admin");
+  revalidatePath("/admin/candidature");
+  return { success: true };
+}
+
+export async function reviewApplication(
+  applicationId: string
+): Promise<ActionResult> {
+  await requireUser("admin");
+  const supabase = createAdminClient();
+
+  const { error } = await supabase
+    .from("pro_applications")
+    .update({ status: "review" })
+    .eq("id", applicationId);
+
+  if (error) return { error: `Update fallito: ${error.message}` };
+  revalidatePath("/admin");
+  revalidatePath("/admin/candidature");
+  return { success: true };
+}
+
+export async function setTherapistStatus(
+  therapistId: string,
+  status: "pending" | "active" | "suspended"
+): Promise<ActionResult> {
+  await requireUser("admin");
+  const supabase = createAdminClient();
+
+  const { error } = await supabase
+    .from("therapists")
+    .update({ status })
+    .eq("id", therapistId);
+
+  if (error) return { error: `Update fallito: ${error.message}` };
+  revalidatePath("/admin");
+  revalidatePath("/admin/terapisti");
   return { success: true };
 }

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ShieldCheck } from "lucide-react";
 import { requireUser, displayName } from "@/lib/auth";
+import { AdminNav } from "./_components/AdminNav";
 
 export const metadata = { title: "Admin" };
 
@@ -26,6 +27,9 @@ export default async function AdminLayout({
           </div>
         </div>
       </header>
+      <div className="mx-auto w-full max-w-6xl px-4 pt-4 sm:px-6">
+        <AdminNav />
+      </div>
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">
         {children}
       </main>
