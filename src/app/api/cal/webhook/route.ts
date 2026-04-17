@@ -46,14 +46,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "invalid json" }, { status: 400 });
   }
 
-  // DEBUG TEMP: rimuovere dopo aver risolto il parsing del meet_url
-  console.log(
-    "[cal webhook] trigger=",
-    body.triggerEvent,
-    "payload=",
-    JSON.stringify(body.payload)
-  );
-
   const admin = createAdminClient();
   const p = body.payload;
 
@@ -111,10 +103,7 @@ export async function POST(request: NextRequest) {
   const calEventId = p.uid ?? p.id?.toString() ?? null;
   const startsAt = p.startTime;
   const endsAt = p.endTime;
-  const meetUrl =
-    p.location && isMeetUrl(p.location)
-      ? p.location
-      : extractMeetUrlFromRefs(p.references) ?? null;
+  const meetUrl = extractMeetUrl(p);
 
   switch (body.triggerEvent) {
     case "BOOKING_CREATED": {
@@ -188,6 +177,10 @@ type CalWebhookPayload = {
       name?: string;
     }>;
     metadata?: Record<string, unknown>;
+    videoCallData?: {
+      type?: string;
+      url?: string;
+    };
     references?: Array<{
       type?: string;
       uid?: string;
@@ -196,16 +189,20 @@ type CalWebhookPayload = {
   };
 };
 
-function isMeetUrl(loc: string): boolean {
-  return /^https?:\/\//.test(loc);
+function isHttpUrl(v: unknown): v is string {
+  return typeof v === "string" && /^https?:\/\//.test(v);
 }
 
-function extractMeetUrlFromRefs(
-  refs: CalWebhookPayload["payload"]["references"]
-): string | null {
-  if (!refs) return null;
-  const meet = refs.find(
-    (r) => r.type?.includes("google_meet") || r.type?.includes("daily_video")
-  );
-  return meet?.meetingUrl ?? null;
+function extractMeetUrl(p: CalWebhookPayload["payload"]): string | null {
+  if (isHttpUrl(p.videoCallData?.url)) return p.videoCallData!.url!;
+  const metaUrl = p.metadata?.videoCallUrl;
+  if (isHttpUrl(metaUrl)) return metaUrl;
+  if (isHttpUrl(p.location)) return p.location;
+  if (p.references) {
+    const ref = p.references.find(
+      (r) => r.type?.includes("google_meet") || r.type?.includes("daily_video")
+    );
+    if (isHttpUrl(ref?.meetingUrl)) return ref!.meetingUrl!;
+  }
+  return null;
 }
