@@ -23,6 +23,7 @@ import {
   type Booking,
   type Therapist,
 } from "@/lib/queries";
+import { CancelBookingButton } from "./CancelBookingButton";
 
 export const metadata = { title: "Le mie sedute" };
 
@@ -150,6 +151,10 @@ function BookingRow({
                   Link Meet in arrivo
                 </span>
               )}
+              <CancelBookingButton
+                bookingId={booking.id}
+                startsAt={booking.startsAt}
+              />
             </>
           ) : (
             <>
