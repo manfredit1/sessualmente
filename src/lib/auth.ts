@@ -50,7 +50,8 @@ export async function requireUser(requireRole?: Role): Promise<CurrentUser> {
   const profile = await loadProfile(user.id, user.email ?? "");
 
   if (requireRole && profile.role !== requireRole) {
-    if (profile.role === "pro") redirect("/pro/dashboard");
+    if (profile.role === "admin") redirect("/admin");
+    else if (profile.role === "pro") redirect("/pro/dashboard");
     else redirect("/app/dashboard");
   }
   return profile;

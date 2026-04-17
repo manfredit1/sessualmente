@@ -44,6 +44,16 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}${explicitNext}`);
   }
 
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role, first_name, last_name")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (profile?.role === "admin") {
+    return NextResponse.redirect(`${origin}/admin`);
+  }
+
   // Pro link?
   const { data: therapist } = await supabase
     .from("therapists")
@@ -54,12 +64,6 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}/pro/dashboard`);
   }
 
-  // Profilo completo?
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("first_name, last_name")
-    .eq("id", user.id)
-    .maybeSingle();
   const profileComplete = Boolean(profile?.first_name && profile?.last_name);
 
   return NextResponse.redirect(
