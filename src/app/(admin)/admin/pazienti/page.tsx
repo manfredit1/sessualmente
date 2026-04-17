@@ -67,7 +67,9 @@ export default async function PazientiPage() {
       <Card className="border-border/60">
         <CardHeader>
           <CardTitle className="text-base">
-            {rows.length} paziente{rows.length === 1 ? "" : "i"} registrat{rows.length === 1 ? "o" : "i"}
+            {rows.length === 1
+              ? "1 paziente registrato"
+              : `${rows.length} pazienti registrati`}
           </CardTitle>
           <CardDescription>
             Visualizzazione sola lettura. Per azioni dirette usa Supabase Studio.
