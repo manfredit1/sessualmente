@@ -1,11 +1,11 @@
-import { requireUser } from "@/lib/auth";
+import { requireOnboardedPro } from "@/lib/pro-guard";
 import { getMyTherapistRecord } from "@/lib/queries";
 import { ProProfileForm } from "./profile-form";
 
 export const metadata = { title: "Profilo" };
 
 export default async function ProfiloProPage() {
-  const user = await requireUser("pro");
+  const { user } = await requireOnboardedPro();
   const therapist = await getMyTherapistRecord(user.id);
 
   if (!therapist) {

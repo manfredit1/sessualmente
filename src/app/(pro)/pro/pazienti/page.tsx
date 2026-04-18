@@ -14,7 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { requireUser } from "@/lib/auth";
+import { requireOnboardedPro } from "@/lib/pro-guard";
 import {
   getMyTherapistRecord,
   getProPatients,
@@ -40,7 +40,7 @@ const statusVariant: Record<
 };
 
 export default async function PazientiPage() {
-  const user = await requireUser("pro");
+  const { user } = await requireOnboardedPro();
   const therapist = await getMyTherapistRecord(user.id);
   if (!therapist) return <p className="text-muted-foreground">Profilo non collegato.</p>;
   const patients = await getProPatients(therapist.id);

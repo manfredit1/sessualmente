@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { requireUser } from "@/lib/auth";
+import { requireOnboardedPro } from "@/lib/pro-guard";
 import {
   getMyTherapistRecord,
   getProPatient,
@@ -30,7 +30,7 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const user = await requireUser("pro");
+  const { user } = await requireOnboardedPro();
   const therapist = await getMyTherapistRecord(user.id);
   if (!therapist) return { title: "Paziente" };
   const p = await getProPatient(therapist.id, id);
@@ -72,7 +72,7 @@ export default async function PatientDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const user = await requireUser("pro");
+  const { user } = await requireOnboardedPro();
   const therapist = await getMyTherapistRecord(user.id);
   if (!therapist) notFound();
   const patient = await getProPatient(therapist.id, id);

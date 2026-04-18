@@ -15,7 +15,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
-import { requireUser } from "@/lib/auth";
+import { requireOnboardedPro } from "@/lib/pro-guard";
 import {
   getMyTherapistRecord,
   getProBookings,
@@ -29,7 +29,7 @@ import {
 export const metadata = { title: "Agenda" };
 
 export default async function ProAgendaPage() {
-  const user = await requireUser("pro");
+  const { user } = await requireOnboardedPro();
   const therapist = await getMyTherapistRecord(user.id);
   if (!therapist) return <p className="text-muted-foreground">Profilo non collegato.</p>;
 
