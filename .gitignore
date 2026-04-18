@@ -37,6 +37,9 @@ yarn-error.log*
 # Claude Code locali
 .claude
 
+# VS Code workspace personale
+*.code-workspace
+
 
 # vercel
 .vercel
