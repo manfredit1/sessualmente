@@ -38,10 +38,26 @@ async function pickUniqueSlug(
   throw new Error("Impossibile generare slug unico dopo 100 tentativi.");
 }
 
+function normalizeCalUsername(raw: string): string {
+  return raw
+    .trim()
+    .replace(/^https?:\/\/(app\.)?cal\.com\//i, "")
+    .replace(/\/+$/, "")
+    .replace(/^@/, "");
+}
+
 export async function approveApplication(
-  applicationId: string
+  applicationId: string,
+  calComUsername: string
 ): Promise<ActionResult> {
   await requireUser("admin");
+
+  const normalizedUsername = normalizeCalUsername(calComUsername);
+  if (normalizedUsername.length < 3)
+    return {
+      error: "Username Cal.com mancante o non valido. Copialo da Cal.com → Team → Members dopo aver invitato il pro.",
+    };
+
   const supabase = createAdminClient();
 
   const { data: app, error: loadErr } = await supabase
@@ -93,6 +109,7 @@ export async function approveApplication(
     bio: app.motivation ?? "Profilo in completamento.",
     email: app.email,
     phone: app.phone,
+    cal_com_username: normalizedUsername,
     status: "pending",
   });
   if (insertErr) return { error: `Insert therapist fallito: ${insertErr.message}` };

@@ -16,13 +16,13 @@ export default async function OnboardingPage() {
     <div className="mx-auto flex min-h-screen w-full max-w-2xl flex-col px-4 py-10 sm:px-6">
       <OnboardingWizard
         therapistName={therapist.name}
+        calUsername={therapist.cal_com_username ?? ""}
         initial={{
           bio:
             therapist.bio && therapist.bio !== "Profilo in completamento."
               ? therapist.bio
               : "",
           tags: therapist.tags ?? [],
-          calComUsername: therapist.cal_com_username ?? "",
           iban: therapist.iban ?? "",
           codiceFiscale: therapist.codice_fiscale ?? "",
           partitaIva: therapist.partita_iva ?? "",

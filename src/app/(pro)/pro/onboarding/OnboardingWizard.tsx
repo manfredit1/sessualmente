@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { completeOnboarding, type OnboardingPayload } from "./actions";
 
 type FormState = OnboardingPayload;
@@ -18,14 +19,17 @@ type StepId = (typeof STEPS)[number];
 
 export function OnboardingWizard({
   therapistName,
+  calUsername,
   initial,
 }: {
   therapistName: string;
+  calUsername: string;
   initial: FormState;
 }) {
   const router = useRouter();
   const [step, setStep] = useState<StepId>("welcome");
   const [data, setData] = useState<FormState>(initial);
+  const [calSetupDone, setCalSetupDone] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   const stepIndex = STEPS.indexOf(step);
@@ -37,8 +41,8 @@ export function OnboardingWizard({
       if (data.tags.length < 1) return "Aggiungi almeno un tag.";
     }
     if (step === "calcom") {
-      if (data.calComUsername.trim().length < 3)
-        return "Inserisci il tuo username Cal.com.";
+      if (!calSetupDone)
+        return "Conferma di aver completato il setup Cal.com.";
     }
     if (step === "fiscal") {
       if (!data.iban.trim()) return "L'IBAN è obbligatorio.";
@@ -84,9 +88,15 @@ export function OnboardingWizard({
       {step === "identity" && (
         <IdentityStep data={data} setData={setData} />
       )}
-      {step === "calcom" && <CalcomStep data={data} setData={setData} />}
+      {step === "calcom" && (
+        <CalcomStep
+          calUsername={calUsername}
+          done={calSetupDone}
+          setDone={setCalSetupDone}
+        />
+      )}
       {step === "fiscal" && <FiscalStep data={data} setData={setData} />}
-      {step === "review" && <ReviewStep data={data} />}
+      {step === "review" && <ReviewStep data={data} calUsername={calUsername} />}
 
       {step !== "welcome" && (
         <div className="flex items-center justify-between border-t border-border/60 pt-6">
@@ -232,11 +242,13 @@ function IdentityStep({
 }
 
 function CalcomStep({
-  data,
-  setData,
+  calUsername,
+  done,
+  setDone,
 }: {
-  data: FormState;
-  setData: React.Dispatch<React.SetStateAction<FormState>>;
+  calUsername: string;
+  done: boolean;
+  setDone: (v: boolean) => void;
 }) {
   return (
     <div className="flex flex-col gap-6">
@@ -245,94 +257,77 @@ function CalcomStep({
           Passo 2
         </p>
         <h2 className="mt-1 text-2xl font-semibold tracking-tight">
-          Collega Cal.com
+          Setup Cal.com
         </h2>
         <p className="mt-1 text-muted-foreground">
-          Cal.com gestisce le prenotazioni dei pazienti e genera il link
-          Google Meet automaticamente.
+          Ti abbiamo già invitato nel team Cal.com di Sessualmente. Bastano 3
+          passaggi per essere operativo.
         </p>
       </div>
 
       <div className="rounded-lg border border-border/60 bg-muted/30 p-5 text-sm">
-        <p className="font-semibold">Se non hai ancora un account Cal.com</p>
-        <ol className="mt-3 list-inside list-decimal space-y-2 text-muted-foreground">
+        <p className="font-semibold">Cosa fare, nell&apos;ordine:</p>
+        <ol className="mt-3 list-inside list-decimal space-y-3 text-muted-foreground">
           <li>
+            <strong className="text-foreground">Accetta l&apos;invito Cal.com</strong>{" "}
+            che trovi nella tua inbox (mittente: Cal.com, oggetto contiene
+            &ldquo;Sessualmente&rdquo;). Al primo ingresso imposti una
+            password.
+          </li>
+          <li>
+            <strong className="text-foreground">Collega Google Calendar</strong>{" "}
+            →{" "}
             <a
-              href="https://app.cal.com/signup"
+              href="https://app.cal.com/apps/categories/calendar"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 font-medium text-primary hover:underline"
             >
-              Apri cal.com/signup
+              Apps → Google Calendar → Install
               <ExternalLink className="h-3 w-3" />
-            </a>{" "}
-            e crea un account
+            </a>
+            . Serve a generare il link Google Meet per ogni seduta.
           </li>
           <li>
-            <strong className="text-foreground">Collega Google Calendar</strong>{" "}
-            (Apps → Google Calendar → Install) — serve per generare Google
-            Meet automaticamente
-          </li>
-          <li>
-            Crea un <strong className="text-foreground">Event Type</strong>{" "}
-            chiamato &ldquo;Seduta 50 minuti&rdquo;:
-            <ul className="ml-5 mt-1 list-inside list-disc space-y-0.5">
-              <li>Durata: 50 minuti</li>
-              <li>Location: <strong className="text-foreground">Google Meet</strong></li>
-              <li>Minimum notice: <strong className="text-foreground">24 ore</strong></li>
-            </ul>
-          </li>
-          <li>
-            Imposta le tue{" "}
+            <strong className="text-foreground">Imposta le tue disponibilità</strong>{" "}
+            orarie settimanali su{" "}
             <a
               href="https://app.cal.com/availability"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 font-medium text-primary hover:underline"
             >
-              disponibilità orarie
+              Availability
               <ExternalLink className="h-3 w-3" />
             </a>
+            . Scegli gli orari in cui vuoi ricevere pazienti.
           </li>
         </ol>
-        <div className="mt-4 rounded-md bg-background p-3">
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Dove trovi il tuo username
-          </p>
-          <p className="mt-1 text-sm">
-            Vai su{" "}
-            <a
-              href="https://app.cal.com/settings/my-account/general"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 font-medium text-primary hover:underline"
-            >
-              Settings → My account
-              <ExternalLink className="h-3 w-3" />
-            </a>
-            . Nel campo &ldquo;Username&rdquo; trovi un URL del tipo{" "}
-            <code className="rounded bg-muted px-1 py-0.5 text-xs">
-              cal.com/tuo-nome
-            </code>
-            . Copiaci solo la parte dopo <code className="rounded bg-muted px-1 py-0.5 text-xs">cal.com/</code>.
-          </p>
+        <div className="mt-4 rounded-md bg-background p-3 text-xs text-muted-foreground">
+          Gli event type (durata 50 min, Google Meet, minimum notice 24h) sono
+          già configurati dal team, non devi toccarli.
+          {calUsername && (
+            <>
+              {" "}Il tuo username Cal.com è:{" "}
+              <code className="rounded bg-muted px-1 py-0.5">
+                cal.com/{calUsername}
+              </code>
+            </>
+          )}
         </div>
       </div>
 
-      <div>
-        <Label htmlFor="calComUsername">Il tuo username Cal.com</Label>
-        <Input
-          id="calComUsername"
-          value={data.calComUsername}
-          onChange={(e) =>
-            setData({ ...data, calComUsername: e.target.value })
-          }
-          placeholder="giulia-bianchi"
+      <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-border/60 bg-card p-4 text-sm hover:border-primary/40">
+        <Checkbox
+          checked={done}
+          onCheckedChange={(v) => setDone(Boolean(v))}
+          className="mt-0.5"
         />
-        <p className="mt-1 text-xs text-muted-foreground">
-          Solo la parte dopo <code>cal.com/</code>. Niente spazi, niente slash.
-        </p>
-      </div>
+        <span>
+          Confermo di aver accettato l&apos;invito Cal.com, collegato Google
+          Calendar e impostato le mie disponibilità orarie.
+        </span>
+      </label>
     </div>
   );
 }
@@ -398,7 +393,13 @@ function FiscalStep({
   );
 }
 
-function ReviewStep({ data }: { data: FormState }) {
+function ReviewStep({
+  data,
+  calUsername,
+}: {
+  data: FormState;
+  calUsername: string;
+}) {
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -424,11 +425,13 @@ function ReviewStep({ data }: { data: FormState }) {
             ))}
           </div>
         </ReviewField>
-        <ReviewField label="Cal.com">
-          <code className="rounded bg-background px-1.5 py-0.5 text-xs">
-            cal.com/{data.calComUsername}
-          </code>
-        </ReviewField>
+        {calUsername && (
+          <ReviewField label="Cal.com">
+            <code className="rounded bg-background px-1.5 py-0.5 text-xs">
+              cal.com/{calUsername}
+            </code>
+          </ReviewField>
+        )}
         <ReviewField label="IBAN">
           <code className="font-mono">{data.iban}</code>
         </ReviewField>

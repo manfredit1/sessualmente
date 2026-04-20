@@ -19,8 +19,7 @@ export type ProTherapist = {
 
 export function isOnboarded(t: ProTherapist): boolean {
   return Boolean(
-    t.cal_com_username &&
-      t.iban &&
+    t.iban &&
       (t.codice_fiscale || t.partita_iva) &&
       t.bio &&
       t.bio.trim().length >= 150 &&

@@ -14,6 +14,16 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   approveApplication,
   rejectApplication,
@@ -39,8 +49,10 @@ type Application = {
 export function ApplicationRow({ application }: { application: Application }) {
   const [isPending, startTransition] = useTransition();
   const [expanded, setExpanded] = useState(false);
+  const [approveOpen, setApproveOpen] = useState(false);
+  const [calUsername, setCalUsername] = useState("");
 
-  const run = (
+  const runSimple = (
     fn: (id: string) => Promise<{ success?: boolean; error?: string }>,
     successMsg: string,
     confirmMsg?: string
@@ -50,6 +62,23 @@ export function ApplicationRow({ application }: { application: Application }) {
       const res = await fn(application.id);
       if (res.error) toast.error(res.error);
       else toast.success(successMsg);
+    });
+  };
+
+  const handleApproveConfirm = () => {
+    if (!calUsername.trim()) {
+      toast.error("Incolla lo username Cal.com del pro.");
+      return;
+    }
+    startTransition(async () => {
+      const res = await approveApplication(application.id, calUsername.trim());
+      if (res.error) {
+        toast.error(res.error);
+        return;
+      }
+      toast.success("Candidatura approvata, invito Sessualmente inviato.");
+      setApproveOpen(false);
+      setCalUsername("");
     });
   };
 
@@ -113,7 +142,7 @@ export function ApplicationRow({ application }: { application: Application }) {
               size="sm"
               disabled={isPending}
               onClick={() =>
-                run(reviewApplication, "Spostata in review.")
+                runSimple(reviewApplication, "Spostata in review.")
               }
             >
               <Eye className="mr-1 h-4 w-4" /> In review
@@ -126,7 +155,7 @@ export function ApplicationRow({ application }: { application: Application }) {
               size="sm"
               disabled={isPending}
               onClick={() =>
-                run(
+                runSimple(
                   rejectApplication,
                   "Candidatura rifiutata.",
                   `Rifiutare ${fullName}?`
@@ -141,13 +170,7 @@ export function ApplicationRow({ application }: { application: Application }) {
               type="button"
               size="sm"
               disabled={isPending}
-              onClick={() =>
-                run(
-                  approveApplication,
-                  "Candidatura approvata, invito inviato.",
-                  `Approvare ${fullName}? Verrà inviato un magic link via email.`
-                )
-              }
+              onClick={() => setApproveOpen(true)}
             >
               <Check className="mr-1 h-4 w-4" />
               {isPending ? "..." : "Approva"}
@@ -155,6 +178,79 @@ export function ApplicationRow({ application }: { application: Application }) {
           )}
         </div>
       </div>
+
+      <Dialog open={approveOpen} onOpenChange={setApproveOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Approva {fullName}</DialogTitle>
+            <DialogDescription>
+              Prima di confermare, invita il candidato nel team Cal.com e
+              incolla qui lo username assegnato.
+            </DialogDescription>
+          </DialogHeader>
+
+          <ol className="space-y-2 rounded-md border border-border/60 bg-muted/30 p-4 text-sm text-muted-foreground">
+            <li>
+              1. Apri{" "}
+              <a
+                href="https://app.cal.com/settings/teams"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 font-medium text-primary hover:underline"
+              >
+                Cal.com → Team Sessualmente
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            </li>
+            <li>
+              2. Members → Add → inserisci{" "}
+              <code className="rounded bg-background px-1 py-0.5 text-xs">
+                {application.email}
+              </code>
+            </li>
+            <li>
+              3. Cal.com genera uno username (es. <code>nome-cognome</code>).
+              Copialo e incollalo qui sotto.
+            </li>
+          </ol>
+
+          <div className="space-y-2">
+            <Label htmlFor={`cal-username-${application.id}`}>
+              Username Cal.com
+            </Label>
+            <Input
+              id={`cal-username-${application.id}`}
+              value={calUsername}
+              onChange={(e) => setCalUsername(e.target.value)}
+              placeholder="giulia-bianchi"
+              autoFocus
+            />
+            <p className="text-xs text-muted-foreground">
+              Solo la parte dopo <code>cal.com/</code>. Puoi modificarlo dopo
+              da Supabase Studio se necessario.
+            </p>
+          </div>
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setApproveOpen(false)}
+              disabled={isPending}
+            >
+              Annulla
+            </Button>
+            <Button
+              type="button"
+              onClick={handleApproveConfirm}
+              disabled={isPending}
+            >
+              <Check className="mr-1 h-4 w-4" />
+              {isPending ? "Invio..." : "Conferma approvazione"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       {expanded && (
         <div className="grid gap-4 border-t border-border/60 px-4 py-4 text-sm sm:grid-cols-2">
           <Field label="Qualifica">{application.qualification}</Field>

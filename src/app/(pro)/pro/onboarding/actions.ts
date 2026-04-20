@@ -9,19 +9,10 @@ export type OnboardingResult = { success?: boolean; error?: string };
 export type OnboardingPayload = {
   bio: string;
   tags: string[];
-  calComUsername: string;
   iban: string;
   codiceFiscale: string;
   partitaIva: string;
 };
-
-function normalizeSlug(value: string): string {
-  return value
-    .trim()
-    .replace(/^https?:\/\/(app\.)?cal\.com\//i, "")
-    .replace(/\/+$/, "")
-    .replace(/^@/, "");
-}
 
 function normalizeIban(value: string): string {
   return value.replace(/\s+/g, "").toUpperCase();
@@ -35,7 +26,6 @@ export async function completeOnboarding(
 
   const bio = payload.bio.trim();
   const tags = payload.tags.map((t) => t.trim()).filter(Boolean);
-  const calComUsername = normalizeSlug(payload.calComUsername);
   const iban = normalizeIban(payload.iban);
   const codiceFiscale = payload.codiceFiscale.trim().toUpperCase();
   const partitaIva = payload.partitaIva.trim();
@@ -44,8 +34,6 @@ export async function completeOnboarding(
     return { error: "La bio deve essere di almeno 150 caratteri." };
   if (tags.length < 1)
     return { error: "Inserisci almeno un tag di specializzazione." };
-  if (calComUsername.length < 3)
-    return { error: "Username Cal.com non valido." };
   if (iban.length < 15 || !/^[A-Z]{2}/.test(iban))
     return { error: "IBAN non valido (atteso formato IT...)." };
   if (!codiceFiscale && !partitaIva)
@@ -68,7 +56,6 @@ export async function completeOnboarding(
     .update({
       bio,
       tags,
-      cal_com_username: calComUsername,
       iban,
       codice_fiscale: codiceFiscale || null,
       partita_iva: partitaIva || null,
