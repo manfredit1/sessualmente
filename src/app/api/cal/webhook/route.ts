@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "node:crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  sendBookingCancelled,
+  sendBookingConfirmed,
+} from "@/lib/email/send";
 
 /**
  * Endpoint che riceve i webhook Cal.com.
@@ -121,6 +125,7 @@ export async function POST(request: NextRequest) {
       if (error) {
         return NextResponse.json({ error: error.message }, { status: 500 });
       }
+      await tryNotifyBookingConfirmed(admin, patientId, therapistId, startsAt, meetUrl);
       return NextResponse.json({ ok: true, created: true });
     }
 
@@ -137,6 +142,7 @@ export async function POST(request: NextRequest) {
       if (error) {
         return NextResponse.json({ error: error.message }, { status: 500 });
       }
+      await tryNotifyBookingConfirmed(admin, patientId, therapistId, startsAt, meetUrl);
       return NextResponse.json({ ok: true, rescheduled: true });
     }
 
@@ -148,11 +154,67 @@ export async function POST(request: NextRequest) {
       if (error) {
         return NextResponse.json({ error: error.message }, { status: 500 });
       }
+      await tryNotifyBookingCancelled(admin, patientId, therapistId, startsAt);
       return NextResponse.json({ ok: true, cancelled: true });
     }
 
     default:
       return NextResponse.json({ ok: true, ignored: body.triggerEvent });
+  }
+}
+
+// Notifiche email (non-blocking: errori loggati ma non falliscono il webhook)
+async function tryNotifyBookingConfirmed(
+  admin: ReturnType<typeof createAdminClient>,
+  patientId: string,
+  therapistId: string,
+  startsAt: string,
+  meetUrl: string | null
+) {
+  try {
+    const [patientProfile, patientUser, therapist] = await Promise.all([
+      admin.from("profiles").select("first_name").eq("id", patientId).maybeSingle(),
+      admin.auth.admin.getUserById(patientId),
+      admin.from("therapists").select("name").eq("id", therapistId).maybeSingle(),
+    ]);
+    const email = patientUser.data.user?.email;
+    if (!email) return;
+    await sendBookingConfirmed({
+      toEmail: email,
+      patientFirstName:
+        (patientProfile.data?.first_name as string | null) ?? "paziente",
+      therapistName: (therapist.data?.name as string | null) ?? "il tuo sessuologo",
+      startsAtIso: startsAt,
+      meetUrl,
+    });
+  } catch (e) {
+    console.error("[cal webhook] notify confirmed failed:", e);
+  }
+}
+
+async function tryNotifyBookingCancelled(
+  admin: ReturnType<typeof createAdminClient>,
+  patientId: string,
+  therapistId: string,
+  startsAt: string
+) {
+  try {
+    const [patientProfile, patientUser, therapist] = await Promise.all([
+      admin.from("profiles").select("first_name").eq("id", patientId).maybeSingle(),
+      admin.auth.admin.getUserById(patientId),
+      admin.from("therapists").select("name").eq("id", therapistId).maybeSingle(),
+    ]);
+    const email = patientUser.data.user?.email;
+    if (!email) return;
+    await sendBookingCancelled({
+      toEmail: email,
+      patientFirstName:
+        (patientProfile.data?.first_name as string | null) ?? "paziente",
+      therapistName: (therapist.data?.name as string | null) ?? "il tuo sessuologo",
+      startsAtIso: startsAt,
+    });
+  } catch (e) {
+    console.error("[cal webhook] notify cancelled failed:", e);
   }
 }
 
