@@ -143,6 +143,35 @@ export async function rejectApplication(
   return { success: true };
 }
 
+export async function deleteApplication(
+  applicationId: string
+): Promise<ActionResult> {
+  await requireUser("admin");
+  const supabase = createAdminClient();
+
+  const { data: app } = await supabase
+    .from("pro_applications")
+    .select("status")
+    .eq("id", applicationId)
+    .maybeSingle();
+
+  if (!app) return { error: "Candidatura non trovata." };
+  if (app.status !== "rejected")
+    return {
+      error: `Puoi eliminare solo candidature rifiutate (stato attuale: ${app.status}).`,
+    };
+
+  const { error } = await supabase
+    .from("pro_applications")
+    .delete()
+    .eq("id", applicationId);
+
+  if (error) return { error: `Eliminazione fallita: ${error.message}` };
+  revalidatePath("/admin");
+  revalidatePath("/admin/candidature");
+  return { success: true };
+}
+
 export async function reviewApplication(
   applicationId: string
 ): Promise<ActionResult> {

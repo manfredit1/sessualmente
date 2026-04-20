@@ -10,6 +10,7 @@ import {
   Eye,
   Mail,
   Phone,
+  Trash2,
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,7 @@ import {
 } from "@/components/ui/dialog";
 import {
   approveApplication,
+  deleteApplication,
   rejectApplication,
   reviewApplication,
 } from "../actions";
@@ -92,6 +94,7 @@ export function ApplicationRow({ application }: { application: Application }) {
   const canApprove = application.status === "new" || application.status === "review";
   const canReview = application.status === "new";
   const canReject = application.status === "new" || application.status === "review";
+  const canDelete = application.status === "rejected";
 
   return (
     <div className="rounded-lg border border-border/60 bg-background">
@@ -174,6 +177,23 @@ export function ApplicationRow({ application }: { application: Application }) {
             >
               <Check className="mr-1 h-4 w-4" />
               {isPending ? "..." : "Approva"}
+            </Button>
+          )}
+          {canDelete && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={isPending}
+              onClick={() =>
+                runSimple(
+                  deleteApplication,
+                  "Candidatura eliminata.",
+                  `Eliminare definitivamente la candidatura di ${fullName}? L'azione è irreversibile.`
+                )
+              }
+            >
+              <Trash2 className="mr-1 h-4 w-4" /> Elimina
             </Button>
           )}
         </div>
