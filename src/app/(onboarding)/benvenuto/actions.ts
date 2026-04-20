@@ -34,24 +34,26 @@ export async function completeWelcome(
   }
 
   // Admin client per evitare casi limite RLS/sessione su server action.
-  // L'identita' e' gia' verificata da requireUser('patient') sopra.
+  // UPSERT: se il trigger handle_new_user non e' scattato (edge case), il
+  // profilo viene creato qui direttamente. L'identita' e' gia' verificata
+  // da requireUser('patient') sopra.
   const admin = createAdminClient();
-  const { data, error } = await admin
+  const { error } = await admin
     .from("profiles")
-    .update({
-      first_name: firstName,
-      last_name: lastName,
-      phone,
-      city,
-      birth_year: birthYear,
-    })
-    .eq("id", user.id)
-    .select("id")
-    .maybeSingle();
+    .upsert(
+      {
+        id: user.id,
+        role: "patient",
+        first_name: firstName,
+        last_name: lastName,
+        phone,
+        city,
+        birth_year: birthYear,
+      },
+      { onConflict: "id" }
+    );
 
   if (error) return { error: error.message };
-  if (!data)
-    return { error: "Profilo non trovato. Prova a fare logout e login." };
 
   revalidatePath("/app", "layout");
   redirect("/app/dashboard");
