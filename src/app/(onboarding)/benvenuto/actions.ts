@@ -2,8 +2,8 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export type WelcomeState = {
   error?: string;
@@ -33,8 +33,10 @@ export async function completeWelcome(
     return { error: "Anno di nascita non valido (minimo 18 anni)." };
   }
 
-  const supabase = await createClient();
-  const { error } = await supabase
+  // Admin client per evitare casi limite RLS/sessione su server action.
+  // L'identita' e' gia' verificata da requireUser('patient') sopra.
+  const admin = createAdminClient();
+  const { data, error } = await admin
     .from("profiles")
     .update({
       first_name: firstName,
@@ -43,9 +45,13 @@ export async function completeWelcome(
       city,
       birth_year: birthYear,
     })
-    .eq("id", user.id);
+    .eq("id", user.id)
+    .select("id")
+    .maybeSingle();
 
   if (error) return { error: error.message };
+  if (!data)
+    return { error: "Profilo non trovato. Prova a fare logout e login." };
 
   revalidatePath("/app", "layout");
   redirect("/app/dashboard");
