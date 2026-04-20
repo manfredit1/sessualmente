@@ -1,6 +1,8 @@
 import Link from "next/link";
-import { ShieldCheck } from "lucide-react";
+import { LogOut, ShieldCheck } from "lucide-react";
 import { requireUser, displayName } from "@/lib/auth";
+import { signOut } from "@/app/(auth)/actions";
+import { Button } from "@/components/ui/button";
 import { AdminNav } from "./_components/AdminNav";
 
 export const metadata = { title: "Admin" };
@@ -22,8 +24,22 @@ export default async function AdminLayout({
             </span>
             Admin · Sessualmente
           </Link>
-          <div className="text-xs text-muted-foreground">
-            {displayName(user)} · {user.email}
+          <div className="flex items-center gap-3">
+            <div className="hidden text-xs text-muted-foreground sm:block">
+              {displayName(user)} · {user.email}
+            </div>
+            <form action={signOut}>
+              <Button
+                type="submit"
+                variant="ghost"
+                size="sm"
+                title="Esci"
+                aria-label="Esci"
+              >
+                <LogOut className="h-4 w-4 sm:mr-1" />
+                <span className="hidden sm:inline">Esci</span>
+              </Button>
+            </form>
           </div>
         </div>
       </header>
