@@ -234,12 +234,12 @@ export default function HomePage() {
               Prezzo
             </p>
             <h2 className="mt-3 text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
-              65 € a seduta. Nessun abbonamento.
+              Il primo colloquio è gratis. Poi 65 € a seduta.
             </h2>
             <p className="mt-4 max-w-md text-muted-foreground">
-              Paghi solo le sedute che fai. Prima di ogni prenotazione sai
-              esattamente cosa costa. Se cambi sessuologo, il prezzo resta lo
-              stesso.
+              Con ciascun sessuologo hai diritto a un primo colloquio gratuito
+              per capire se è il match giusto. Se continui, paghi solo le
+              sedute che fai. Nessun abbonamento, nessun pacchetto.
             </p>
             <Link
               href="/prezzi"
@@ -255,7 +255,13 @@ export default function HomePage() {
             />
             <CardContent className="relative flex flex-col gap-4 py-8 text-sm">
               <div className="flex items-baseline justify-between border-b border-border/50 pb-4">
-                <span className="text-muted-foreground">Seduta singola</span>
+                <span className="text-muted-foreground">Primo colloquio</span>
+                <span className="text-3xl font-semibold tracking-tight text-primary">
+                  Gratis
+                </span>
+              </div>
+              <div className="flex items-baseline justify-between border-b border-border/50 pb-4">
+                <span className="text-muted-foreground">Seduta successiva</span>
                 <span className="text-3xl font-semibold tracking-tight">
                   65 €
                 </span>

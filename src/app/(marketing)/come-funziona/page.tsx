@@ -38,7 +38,7 @@ const steps = [
   {
     number: "03",
     title: "Prenoti e parli, dal tuo divano.",
-    body: "Scegli uno slot dall'agenda online del sessuologo, paghi solo la seduta che farai (65 €), ricevi via email il link per la videochiamata. La seduta dura 50 minuti su Google Meet. Nessun software da installare.",
+    body: "Scegli uno slot dall'agenda online del sessuologo. Il primo colloquio è gratuito: serve a conoscersi senza impegno. Se scegli di continuare, dalla seconda seduta paghi 65€. La videochiamata è su Google Meet, dura 50 minuti. Nessun software da installare.",
     meta: "Entro 48h",
   },
   {
