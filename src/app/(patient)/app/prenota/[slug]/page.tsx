@@ -98,7 +98,7 @@ export default async function TherapistDetailPage({
             </CardHeader>
             <CardContent className="p-0">
               {calLink ? (
-                <div className="h-[640px] w-full">
+                <div className="h-[760px] w-full md:h-[860px] lg:h-[920px]">
                   <CalEmbed
                     calLink={calLink}
                     patientEmail={user.email}
